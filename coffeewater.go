@@ -17,14 +17,29 @@ func main() {
 	}
 
 	for {
-		distance, err := s.MeasureDistance()
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("Distance: %5.2f cm", distance.InCentimeters())
-			fmt.Printf(" (%d us)\n", distance.InMicroseconds())
+		var set []float32
+		for i := 0; i < 10; i++ {
+			time.Sleep(time.Duration(100) * time.Millisecond)
+			distance, err := s.MeasureDistance()
+			if err != nil {
+				continue // failure to read the sensor
+			}
+			cm := distance.InCentimeters()
+			if cm > 200 {
+				continue // spurious result from the sensor
+			}
+			set = append(set, cm)
 		}
-		time.Sleep(time.Duration(250) * time.Millisecond)
+		numSamples := len(set)
+		if numSamples < 3 {
+			fmt.Printf("Distance: unknown\n")
+			continue
+		}
+		var avg float32
+		for _, cm := range set {
+			avg += cm
+		}
+		avg = avg / float32(numSamples)
+		fmt.Printf("Distance: %5.2f cm (%d samples)\n", avg, numSamples)
 	}
-
 }
