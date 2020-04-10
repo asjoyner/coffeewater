@@ -5,6 +5,7 @@
 *.so
 *.dylib
 coffeewater
+closevalve/closevalve
 
 # Test binary, built with `go test -c`
 *.test
