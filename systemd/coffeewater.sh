@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go run coffeewater.go; go run closevalve/closevalve.go
+/usr/local/bin/go run coffeewater.go; /usr/local/bin/go run closevalve/closevalve.go
