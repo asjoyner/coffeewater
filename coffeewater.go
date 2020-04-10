@@ -1,17 +1,16 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/asjoyner/rangesensor"
-	"github.com/golang/glog"
 	"periph.io/x/periph/conn/gpio"
 	"periph.io/x/periph/conn/gpio/gpioreg"
 	"periph.io/x/periph/host"
@@ -54,35 +53,6 @@ func (w *Watcher) followPin() {
 	}
 }
 
-// avgDistance returns the averaged measured distance over the last 1 second
-func (w *Watcher) avgDistance() (float32, error) {
-	var set []float32
-	for i := 0; i < 10; i++ {
-		time.Sleep(time.Duration(100) * time.Millisecond)
-		distance, err := w.sensor.MeasureDistance()
-		if err != nil {
-			continue // failure to read the sensor
-		}
-		cm := distance.InCentimeters()
-		if cm > 200 {
-			continue // spurious result from the sensor
-		}
-		set = append(set, cm)
-	}
-	numSamples := len(set)
-	if numSamples < 3 {
-		glog.Infof("Distance: unknown")
-		return 0.0, errors.New("distance unknown")
-	}
-	var avg float32
-	for _, cm := range set {
-		avg += cm
-	}
-	avg = avg / float32(numSamples)
-	glog.Infof("Distance: %5.2f cm (%d samples)", avg, numSamples)
-	return avg, nil
-}
-
 // CloseOnSigTerm sets the valve GPIO pin low when SIGTERM is received, prints
 // a notification, then exits.
 func CloseOnSigTerm(valve gpio.PinIO) {
@@ -94,6 +64,72 @@ func CloseOnSigTerm(valve gpio.PinIO) {
 		valve.Out(gpio.Low)
 		os.Exit(0)
 	}()
+}
+
+// safeToFill sanity checks values, and indicates if filling is appropriate.
+//
+// top defines the short expected measured distance, in centimeters, from the
+// sensor to the literal high water mark
+//
+// bottom defines the longest expected measured distance, in centimeters, to
+// the bottom of the container
+//
+// target indicates the measured height of the water level, in centimeters from
+// the sensor.
+//
+// fill indicates the measured distance to where coffeebot should start
+// refilling the water resivoir.  Together with target, this defines the two
+// values used to maintain the desired water level.
+//
+// values is the ordered history of measurements, in centimeters, beginning
+// with the most recent.
+//
+// The bool return value indicates if it is safe to fill, and the string
+// describes the current status of the water level.
+func safeToFill(top, bottom float32, values []*rangesensor.Measurement) (bool, float32, string) {
+	if len(values) < 10 {
+		return false, 0.0, fmt.Sprintf("insufficient history: %v", len(values))
+	}
+	var summary strings.Builder
+	var sum float32
+	unknown := 0
+	valid := 0
+	tooLow := 0
+	tooHigh := 0
+	for _, v := range values {
+		if v == nil || !v.Trustworthy() {
+			summary.WriteString("nil, ")
+			unknown++
+			continue
+		}
+		vcm := v.InCentimeters()
+		if vcm < top {
+			tooHigh++
+			summary.WriteString(fmt.Sprintf("^%5.2f ", vcm))
+			continue
+		}
+		if vcm > bottom {
+			tooLow++
+			summary.WriteString(fmt.Sprintf("v%5.2f ", vcm))
+			continue
+		}
+		summary.WriteString(fmt.Sprintf("%5.2f ", vcm))
+		sum += vcm
+		valid++
+	}
+	if valid < 7 {
+		return false, 0.0, fmt.Sprintf("too many uncertain values: %s", summary.String())
+		// (this also avoids a divide-by-zero error below)
+	}
+	average := sum / float32(valid)
+	summary.WriteString(fmt.Sprintf("avg of %d: %5.2f", valid, average))
+	if tooHigh > 3 {
+		return false, average, fmt.Sprintf("too many high values: %s", summary.String())
+	}
+	if tooLow > 3 {
+		return false, average, fmt.Sprintf("too many low values: %s", summary.String())
+	}
+	return true, average, summary.String()
 }
 
 func main() {
@@ -122,21 +158,44 @@ func main() {
 
 	// Poll the sensor in a loop
 	w := NewWatcher(s)
+	var filling bool
+	var target float32 = 9.0
+	var fill float32 = 14.0
 	for {
-		last10 := w.History()
-		latest := last10[len(last10)-1]
-		if latest != nil && latest.Trustworthy() && latest.InCentimeters() > 10 {
-			valve.Out(gpio.High) // Open the water valve
-		} else {
+		time.Sleep(time.Second)
+
+		ok, avg, status := safeToFill(5.0, 20.0, w.History())
+		if !ok {
+			fmt.Println("unsafe condition: ", status)
+			filling = false
 			valve.Out(gpio.Low) // Close the water valve
+			continue
 		}
 
-		for _, m := range last10 {
-			if m != nil {
-				fmt.Printf("%5.2f ", m.InCentimeters())
-			}
+		// go through the conditions from "top to bottom"
+		if avg < target {
+			fmt.Println("comfortably above target: ", status)
+			filling = false
+			valve.Out(gpio.Low) // Close the water valve
+			continue
 		}
-		fmt.Println()
-		time.Sleep(time.Second)
+		if filling {
+			fmt.Println("filling: ", status)
+			continue
+		}
+		if avg < fill {
+			valve.Out(gpio.Low) // Close the water valve
+			fmt.Println("just a little low: ", status)
+			continue
+		}
+		if avg > fill {
+			fmt.Println("starting fill: ", status)
+			filling = true
+			valve.Out(gpio.High) // Open the water valve
+			continue
+		}
+		fmt.Println("unexpected condition: ", status)
+		valve.Out(gpio.Low) // Close the water valve
+
 	}
 }
