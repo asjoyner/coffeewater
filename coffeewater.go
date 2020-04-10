@@ -2,13 +2,25 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/asjoyner/rangesensor"
 	"github.com/golang/glog"
+	"periph.io/x/periph/conn/gpio"
+	"periph.io/x/periph/conn/gpio/gpioreg"
+	"periph.io/x/periph/host"
+)
+
+var (
+	valvePin   = flag.String("valvePin", "5", "GPIO pin connected the water solneoid valve.")
+	echoPin    = flag.String("echoPin", "13", "GPIO pin connected the HC-SR04 echo pin.")
+	triggerPin = flag.String("triggerPin", "16", "GPIO pin connected the HC-SR04 trigger pin.")
 )
 
 // Watcher keeps track of the distance seen by a Sensor
@@ -71,24 +83,57 @@ func (w *Watcher) avgDistance() (float32, error) {
 	return avg, nil
 }
 
+// CloseOnSigTerm sets the valve GPIO pin low when SIGTERM is received, prints
+// a notification, then exits.
+func CloseOnSigTerm(valve gpio.PinIO) {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		fmt.Println("\nReceived SIGTERM, closing valve and exiting.")
+		valve.Out(gpio.Low)
+		os.Exit(0)
+	}()
+}
+
 func main() {
-	s, err := rangesensor.New("13", "16")
-	if err != nil {
-		fmt.Println("could not configure pin: ", err)
+	// Initialize the water valve
+	if _, err := host.Init(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+	valve := gpioreg.ByName(*valvePin)
+	if valve == nil {
+		fmt.Fprintln(os.Stderr, "no GPIO valve pin named: ", *valvePin)
+		os.Exit(2)
+	}
+	if err := valve.Out(gpio.Low); err != nil {
+		fmt.Fprintln(os.Stderr, "could not configure valve output pin: ", *valvePin)
+		os.Exit(3)
+	}
+	CloseOnSigTerm(valve)
 
+	// Initialize the HC-SR04 sensor
+	s, err := rangesensor.New(*echoPin, *triggerPin)
+	if err != nil {
+		fmt.Println("could not configure rangesensor: ", err)
+		os.Exit(4)
+	}
+
+	// Poll the sensor in a loop
 	w := NewWatcher(s)
 	for {
 		last10 := w.History()
 		latest := last10[len(last10)-1]
 		if latest != nil && latest.Trustworthy() && latest.InCentimeters() > 10 {
-			fmt.Println("MAIN SCREEN^WPUMP TURN ON")
+			valve.Out(gpio.High) // Open the water valve
+		} else {
+			valve.Out(gpio.Low) // Close the water valve
 		}
 
 		for _, m := range last10 {
 			if m != nil {
-				fmt.Printf("%+v ", *m)
+				fmt.Printf("%5.2f ", m.InCentimeters())
 			}
 		}
 		fmt.Println()
