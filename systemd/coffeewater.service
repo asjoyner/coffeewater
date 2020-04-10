@@ -1,0 +1,15 @@
+[Unit]
+Description=CoffeeBot
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=asjoyner
+WorkingDirectory=/home/asjoyner/go/src/github.com/asjoyner/coffeewater
+ExecStart=/home/asjoyner/go/src/github.com/asjoyner/coffeewater/systemd/coffeewater.sh
+
+[Install]
+WantedBy=multi-user.target
+
