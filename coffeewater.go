@@ -159,6 +159,7 @@ func main() {
 	// Poll the sensor in a loop
 	w := NewWatcher(s)
 	var filling bool
+	fillCheck := make([]time.Time, 5)
 	var target float32 = 9.0
 	var fill float32 = 14.0
 	for {
@@ -189,6 +190,21 @@ func main() {
 			continue
 		}
 		if avg > fill {
+			// Require 3 of 5 polls to agree to fill, to avoid occasional spurious
+			// readings triggering little spurts of water that eventually overflow
+			// the reservoir
+			now := time.Now()
+			fillCheck = append(fillCheck[1:5], now)
+			agreement := 0
+			for _, t := range fillCheck {
+				if t.After(now.Add(-5 * time.Second)) {
+					agreement++
+				}
+			}
+			if agreement < 3 {
+				fmt.Printf("waiting to confirm I should fill (%d/3): %s\n", agreement, status)
+				continue
+			}
 			fmt.Println("starting fill: ", status)
 			filling = true
 			valve.Out(gpio.High) // Open the water valve
