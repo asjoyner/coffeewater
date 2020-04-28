@@ -15,7 +15,7 @@ You need the following basic components:
 
 ## How it works
 
-You mount the ultrasonic range sensor inside the top of the coffee machine's water resivoir.  You attach the water valve between a nearby sink's plumbing and the resivoir.  You wire both of these devices to the Raspberry Pi.  The coffeewater code reads the level of the water with the sensor, and refills the water.  You never have to do it again!
+You mount the ultrasonic range sensor inside the top of the coffee machine's water reservoir.  You attach the water valve between a nearby sink's plumbing and the reservoir.  You wire both of these devices to the Raspberry Pi.  The coffeewater code reads the level of the water with the sensor, and refills the water.  You never have to do it again!
 
 ## Bill of materials
 
