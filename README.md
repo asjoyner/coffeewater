@@ -15,11 +15,11 @@ You need the following basic components:
 
 ## How it works
 
-You mount the ultrasonic range sensor inside the top of the coffee machine's water reservoir.  You attach the water valve between a nearby sink's plumbing and the reservoir.  You wire both of these devices to the Raspberry Pi.  The coffeewater code reads the level of the water with the sensor, and refills the water.  You never have to do it again!
+CoffeeBot uses an ultrasonic range sensor mounted inside the top of the coffee machine's water reservoir to read the water level.  When the water level falls below a certain point, it triggers a solenoid valve to open and begin filling the reservoir.  To feed water into and out of the value, you must attach the water valve between a nearby sink's plumbing and the reservoir.  CoffeeBot's code includes several safety measures to ensure it won't accidentally flood your kitchen, and to ensure you never have to fill the reservior by hand again!
 
 ## Bill of materials
 
-Here's a precise set of materials, with links, that you need to assemble a CoffeeBot of your very own.  Do take note that you may have some of these items already (such as a few resistors, or an old USB charger to power the Pi), or that you may be able to find them cheaper at a local plumbing supply store or big-box hardware store (such as a faucet supply line).  You may also be able to easily substitute some less expensive plastic plumbing parts, such as for the brass Sink Tee and Threaded Coupling I have linked to below.  You could cut costs more aggressively by dropping down to a Pi Zero and replacing the Perma-Proto hat with a spare piece of perfboard.
+Here's the precise set of materials, with links, that you need to assemble a CoffeeBot of your very own.  Do take note that you may have some of these items already (such as a few resistors, or an old USB charger to power the Pi), or that you may be able to find them cheaper at a local plumbing supply store or big-box hardware store (such as a faucet supply line).  You may also be able to easily substitute some less expensive plastic plumbing parts, such as for the brass Sink Tee and Threaded Coupling I have linked to below.  You could cut costs more aggressively by dropping down to a Pi Zero and replacing the Perma-Proto hat with a spare piece of perfboard.
 
 | Description                                                                 |   Cost |
 | --------------------------------------------------------------------------- | ------:|
