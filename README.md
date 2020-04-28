@@ -1,7 +1,7 @@
 # coffeewater
-Tired of filling the water in your single-cup coffee machine?  Have a few bucks to spare (< $50), and an afternoon to kill?  This is just what you need!
+Tired of filling the water in your single-cup coffee machine?  Have a Benjamin to spare (~$100), and an afternoon to kill?  This is just what you need!
 
-coffeewater is the code behind CoffeBot, a tiny computer and some plumbing parts to automate an annoying and repetitive tasks.
+coffeewater is the code behind CoffeBot, a tiny computer and some plumbing parts to automate an annoying and repetitive task.
 
 ## Roughly what you need
 
@@ -19,11 +19,12 @@ You mount the ultrasonic range sensor inside the top of the coffee machine's wat
 
 ## Bill of materials
 
-Here's a precise set of materials, with links, that you need to assemble a CoffeeBot of your very own.  Do take note that you may have some of these items already (such as a few resistors), or that you may be able to find them cheaper at a local plumbing supply store or big-box hardware store (such as a faucet supply line).  You may also be able to easily substitute some less expensive plastic plumbing parts, such as for the brass Sink Tee and Threaded Coupling I have linked to below.
+Here's a precise set of materials, with links, that you need to assemble a CoffeeBot of your very own.  Do take note that you may have some of these items already (such as a few resistors, or an old USB charger to power the Pi), or that you may be able to find them cheaper at a local plumbing supply store or big-box hardware store (such as a faucet supply line).  You may also be able to easily substitute some less expensive plastic plumbing parts, such as for the brass Sink Tee and Threaded Coupling I have linked to below.  You could cut costs more aggressively by dropping down to a Pi Zero and replacing the Perma-Proto hat with a spare piece of perfboard.
 
 | Description                                                                 |   Cost |
 | --------------------------------------------------------------------------- | ------:|
 | [Rapsberry Pi Model 3 A+](https://www.adafruit.com/product/4027)            | $25.00 |
+| [A cheap SDCard](https://smile.amazon.com/gp/product/B079GTYCW4)            |  $8.99 |
 | [Rapsberry Pi case](https://www.adafruit.com/product/2361)                  |  $5.00 |
 | [Perma-Proto Model A+ Hat](https://www.adafruit.com/product/2310)           |  $4.95 |
 | [Rapsberry Pi power supply](https://www.adafruit.com/product/1995)          |  $7.50 |
@@ -45,13 +46,13 @@ If you don't have a pile of resistors and a few optoisolators lying around, you 
 
 | Description        | Cost           |
 | ------------- |-------------:|
-| [an optoisolator](https://www.digikey.com/product-detail/en/taiwan-semiconductor-corporation/TPC817C-C9G/TPC817CC9G-ND/7359670) | $0.39 |
-| [some resistors](https://smile.amazon.com/Resistor-Assorted-Resistors-Assortment-Experiments/dp/B07L851T3V) | $14.99 |
-| [some breakaway headers](https://www.adafruit.com/product/392) | $4.95 |
-| [some female/female jumper wires](https://www.adafruit.com/product/1950) | $1.95 |
-| [~10 feet of >=4 conductor wire](https://www.lowes.com/pd/Southwire-18-4-Jacketed-Sprinkler-Wire-By-the-Foot/50142294) | $3.30 |
+| [an optoisolator](https://www.digikey.com/product-detail/en/taiwan-semiconductor-corporation/TPC817C-C9G/TPC817CC9G-ND/7359670) |  $0.39 |
+| [some resistors](https://smile.amazon.com/Resistor-Assorted-Resistors-Assortment-Experiments/dp/B07L851T3V)                     | $14.99 |
+| [some breakaway headers](https://www.adafruit.com/product/392)                                                                  |  $4.95 |
+| [some female/female jumper wires](https://www.adafruit.com/product/1950)                                                        |  $1.95 |
+| [~10 feet of >=4 conductor wire](https://www.lowes.com/pd/Southwire-18-4-Jacketed-Sprinkler-Wire-By-the-Foot/50142294)          |  $3.30 |
 
-You could do without the headers if you just solder everything together, but it's much easier to work with in the future if you can disconnect each of the pieces.  You could also use roughly any wire with at least 4 conductors to hook up your HC-SR04, such as an old CAT5 patch cord or some alarm or thermostat wire.
+You could do without the headers if you just solder everything together, but it's much easier to work with on the future if you can disconnect each of the pieces.  You could also use roughly any wire with at least 4 conductors to hook up your HC-SR04, such as an old CAT5 patch cord or some alarm or thermostat wire.
 
 ## Perma-Proto Board Layout
 
